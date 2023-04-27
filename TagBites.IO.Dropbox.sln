@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.30309.148
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TagBites.IO.Dropbox", "src\TagBites.IO.Dropbox\TagBites.IO.Dropbox.csproj", "{EA1A4A3D-A0A1-4728-B507-C5A3BAFCF07D}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{EA1A4A3D-A0A1-4728-B507-C5A3BAFCF07D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EA1A4A3D-A0A1-4728-B507-C5A3BAFCF07D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EA1A4A3D-A0A1-4728-B507-C5A3BAFCF07D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EA1A4A3D-A0A1-4728-B507-C5A3BAFCF07D}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {9C253CD1-C004-4DCE-92A4-594910C0883D}
+	EndGlobalSection
+EndGlobal
