@@ -8,10 +8,13 @@ using TagBites.IO.Operations;
 
 namespace TagBites.IO.Dropbox
 {
-    internal class DropboxFileSystemOperations : IFileSystemAsyncWriteOperations, IFileSystemMetadataSupport
+    internal class DropboxFileSystemOperations : IFileSystemAsyncWriteOperations, IFileSystemMetadataSupport, IDisposable
     {
         private const string RootDirectory = "/";
         private readonly DropboxClient _dropboxClient;
+
+        public string Kind => "dropbox";
+        public string? Name => null;
 
         #region IFileSystemOperationsMetadataSupport
 
@@ -20,7 +23,6 @@ namespace TagBites.IO.Dropbox
         bool IFileSystemMetadataSupport.SupportsLastWriteTimeMetadata => false;
 
         #endregion
-
 
         public DropboxFileSystemOperations(string oauth2Token)
         {
@@ -35,7 +37,7 @@ namespace TagBites.IO.Dropbox
 
 
 
-        public IFileSystemStructureLinkInfo GetLinkInfo(string fullName)
+        public async Task<IFileSystemStructureLinkInfo> GetLinkInfoAsync(string fullName)
         {
             Guard.ArgumentNotNullOrEmpty(fullName, nameof(fullName));
 
@@ -44,8 +46,7 @@ namespace TagBites.IO.Dropbox
 
             try
             {
-                var metadata = _dropboxClient.Files.GetMetadataAsync(fullName)
-                    .ConfigureAwait(false).GetAwaiter().GetResult();
+                var metadata = await _dropboxClient.Files.GetMetadataAsync(fullName).ConfigureAwait(false);
 
                 return GetInfo(metadata);
             }
@@ -66,13 +67,14 @@ namespace TagBites.IO.Dropbox
 
         #region Files
 
-        public async Task<Stream> ReadFileAsync(FileLink file)
+        public async Task ReadFileAsync(FileLink file, Stream stream)
         {
             Guard.ArgumentNotNull(file, nameof(file));
 
             var argument = new DownloadArg(file.FullName);
             var result = await _dropboxClient.Files.DownloadAsync(argument).ConfigureAwait(false);
-            return await result.GetContentAsStreamAsync().ConfigureAwait(false);
+            using var rs = await result.GetContentAsStreamAsync().ConfigureAwait(false);
+            await rs.CopyToAsync(stream).ConfigureAwait(false);
         }
         public async Task<IFileLinkInfo> WriteFileAsync(FileLink file, Stream stream, bool overwrite)
         {
@@ -196,25 +198,12 @@ namespace TagBites.IO.Dropbox
 
         #region Metadata
 
-        public async Task<IFileSystemStructureLinkInfo> UpdateMetadataAsync(FileSystemStructureLink link, IFileSystemLinkMetadata metadata)
+        public Task<IFileSystemStructureLinkInfo> UpdateMetadataAsync(FileSystemStructureLink link, IFileSystemLinkMetadata metadata)
         {
             Guard.ArgumentNotNull(link, nameof(link));
             Guard.ArgumentNotNull(metadata, nameof(metadata));
 
-            return GetLinkInfo(link.FullName);
-
-            //var changes = false;
-            //if (metadata.IsReadOnly.HasValue && link.IsReadOnly != metadata.IsReadOnly.Value)
-            //{
-            //    if (metadata.IsReadOnly.Value)
-            //        await _dropboxClient.Files.LockFileBatchAsync(new List<LockFileArg>() { new LockFileArg(link.FullName) });
-            //    else
-            //        await _dropboxClient.Files.UnlockFileBatchAsync(new List<UnlockFileArg>() { new UnlockFileArg(link.FullName) });
-
-            //    changes = true;
-            //}
-
-            //return changes ? GetLinkInfo(link.FullName) : link.Info;
+            return GetLinkInfoAsync(link.FullName);
         }
 
         private static IFileSystemStructureLinkInfo GetInfo(Metadata metadata)
@@ -250,13 +239,15 @@ namespace TagBites.IO.Dropbox
 
         #endregion
 
+        public void Dispose() => _dropboxClient?.Dispose();
+
         private class FileInfo : IFileLinkInfo
         {
             public FileMetadata Metadata { get; }
 
             public string FullName => Metadata.PathDisplay;
             public bool Exists => !Metadata.IsDeleted;
-            public bool IsDirectory => false;
+            public bool? IsDirectory => false;
             public DateTime? CreationTime => null;
             public DateTime? LastWriteTime => Metadata.ClientModified;
             public bool IsHidden => false;
@@ -279,7 +270,7 @@ namespace TagBites.IO.Dropbox
 
             public string FullName => Metadata.PathDisplay;
             public bool Exists => !Metadata.IsDeleted;
-            public bool IsDirectory => true;
+            public bool? IsDirectory => true;
             public DateTime? CreationTime => null;
             public DateTime? LastWriteTime => null;
             public bool IsHidden => false;
@@ -294,7 +285,7 @@ namespace TagBites.IO.Dropbox
         {
             public string FullName => "/";
             public bool Exists => true;
-            public bool IsDirectory => true;
+            public bool? IsDirectory => true;
 
             public DateTime? CreationTime => null;
             public DateTime? LastWriteTime => null;
