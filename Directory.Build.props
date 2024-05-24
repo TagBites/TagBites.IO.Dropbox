@@ -4,7 +4,9 @@
   <PropertyGroup>
     <Company>Tag Bites sp. z o.o.</Company>
     <Authors>Tag Bites sp. z o.o.</Authors>
-    <Copyright>Tag Bites sp. z o.o. © 2012-2019</Copyright>
+    <CopyrightSinceYear>2012</CopyrightSinceYear>
+
+    <Copyright>© $(CopyrightSinceYear)-$([System.DateTime]::Today.ToString(`yyyy`)) $(Company)</Copyright>
   </PropertyGroup>
 
   <!-- Bin/Obj directories -->
@@ -18,6 +20,13 @@
     <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
     <LangVersion>latest</LangVersion>
     <Deterministic>true</Deterministic>
+  </PropertyGroup>
+
+  <!-- Publish -->
+  <PropertyGroup Condition="'$(Configuration)' == 'Publish'">
+    <DebugType>none</DebugType>
+    <Optimize>True</Optimize>
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
   </PropertyGroup>
 
   <!-- Globalziation -->
