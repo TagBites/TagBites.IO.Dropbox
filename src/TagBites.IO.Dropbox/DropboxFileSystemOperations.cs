@@ -48,7 +48,7 @@ namespace TagBites.IO.Dropbox
 
                 return GetInfo(metadata);
             }
-            catch (ApiException<GetMetadataError> e)
+            catch (ApiException<GetMetadataError> e) when (e.ErrorResponse.IsPath && e.ErrorResponse.AsPath.Value.IsNotFound)
             {
                 return null;
             }
