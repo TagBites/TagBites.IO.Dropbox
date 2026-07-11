@@ -79,7 +79,7 @@ internal class DropboxFileSystemOperations : IFileSystemAsyncWriteOperations, IF
         Guard.ArgumentNotNull(file, nameof(file));
         Guard.ArgumentNotNull(stream, nameof(stream));
 
-        var arguments = new UploadArg(file.FullName, file.Exists ? (WriteMode)WriteMode.Overwrite.Instance : WriteMode.Add.Instance);
+        var arguments = new UploadArg(file.FullName, overwrite ? (WriteMode)WriteMode.Overwrite.Instance : WriteMode.Add.Instance);
         var result = await _dropboxClient.Files.UploadAsync(arguments, stream).ConfigureAwait(false);
         return GetFileInfo(result);
     }
