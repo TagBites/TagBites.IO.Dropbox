@@ -115,7 +115,7 @@ namespace TagBites.IO.Dropbox
                 var folder = await _dropboxClient.Files.CreateFolderV2Async(folderArg).ConfigureAwait(false);
                 return GetDirectoryInfo(folder.Metadata);
             }
-            catch (ApiException<CreateFolderError> e)
+            catch (ApiException<CreateFolderError> e) when (e.ErrorResponse.IsPath && e.ErrorResponse.AsPath.Value.IsConflict)
             {
                 return null;
             }
