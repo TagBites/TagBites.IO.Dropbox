@@ -53,16 +53,6 @@ internal class DropboxFileSystemOperations : IFileSystemAsyncWriteOperations, IF
             return null;
         }
     }
-    public string? CorrectPath(string? path)
-    {
-        return path switch
-        {
-            null => null,
-            RootDirectory => path,
-            _ => path.StartsWith("/") ? path : "/" + path
-        };
-    }
-
     #region Files
 
     public async Task ReadFileAsync(FileLink file, Stream stream)
@@ -158,7 +148,7 @@ internal class DropboxFileSystemOperations : IFileSystemAsyncWriteOperations, IF
         }
 
         var arg = new DeleteArg(directory.FullName);
-        var result = await _dropboxClient.Files.DeleteV2Async(arg).ConfigureAwait(false);
+        await _dropboxClient.Files.DeleteV2Async(arg).ConfigureAwait(false);
     }
 
     public async Task<IList<IFileSystemStructureLinkInfo>> GetLinksAsync(DirectoryLink directory, FileSystem.ListingOptions options)
@@ -250,15 +240,6 @@ internal class DropboxFileSystemOperations : IFileSystemAsyncWriteOperations, IF
     {
         return new FileInfo(metadata);
     }
-
-    private static Metadata? ToMetadata(FileSystemStructureLink link)
-    {
-        return link is FileLink f
-            ? (Metadata?)ToMetadata(f)
-            : ToMetadata((DirectoryLink)link);
-    }
-    private static FileMetadata? ToMetadata(FileLink link) => (link.Info as FileInfo)?.Metadata;
-    private static FolderMetadata? ToMetadata(DirectoryLink link) => (link.Info as DirectoryInfo)?.Metadata;
 
     #endregion
 
