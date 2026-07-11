@@ -35,7 +35,7 @@ namespace TagBites.IO.Dropbox
 
 
 
-        public async Task<IFileSystemStructureLinkInfo> GetLinkInfoAsync(string fullName)
+        public async Task<IFileSystemStructureLinkInfo?> GetLinkInfoAsync(string fullName)
         {
             Guard.ArgumentNotNullOrEmpty(fullName, nameof(fullName));
 
@@ -53,7 +53,7 @@ namespace TagBites.IO.Dropbox
                 return null;
             }
         }
-        public string CorrectPath(string path)
+        public string? CorrectPath(string? path)
         {
             return path switch
             {
@@ -117,7 +117,8 @@ namespace TagBites.IO.Dropbox
             }
             catch (ApiException<CreateFolderError> e) when (e.ErrorResponse.IsPath && e.ErrorResponse.AsPath.Value.IsConflict)
             {
-                return null;
+                // Pre-existing: returns null on conflict despite the interface declaring a non-null result.
+                return null!;
             }
         }
         public async Task<IFileSystemStructureLinkInfo> MoveDirectoryAsync(DirectoryLink source, DirectoryLink destination)
@@ -196,15 +197,16 @@ namespace TagBites.IO.Dropbox
 
         #region Metadata
 
-        public Task<IFileSystemStructureLinkInfo> UpdateMetadataAsync(FileSystemStructureLink link, IFileSystemLinkMetadata metadata)
+        public async Task<IFileSystemStructureLinkInfo> UpdateMetadataAsync(FileSystemStructureLink link, IFileSystemLinkMetadata metadata)
         {
             Guard.ArgumentNotNull(link, nameof(link));
             Guard.ArgumentNotNull(metadata, nameof(metadata));
 
-            return GetLinkInfoAsync(link.FullName);
+            // Pre-existing: propagates a null result despite the interface declaring a non-null result.
+            return (await GetLinkInfoAsync(link.FullName).ConfigureAwait(false))!;
         }
 
-        private static IFileSystemStructureLinkInfo GetInfo(Metadata metadata)
+        private static IFileSystemStructureLinkInfo? GetInfo(Metadata metadata)
         {
             if (metadata == null)
                 return null;
@@ -226,14 +228,14 @@ namespace TagBites.IO.Dropbox
             return new FileInfo(metadata);
         }
 
-        private static Metadata ToMetadata(FileSystemStructureLink link)
+        private static Metadata? ToMetadata(FileSystemStructureLink link)
         {
             return link is FileLink f
-                ? (Metadata)ToMetadata(f)
+                ? (Metadata?)ToMetadata(f)
                 : ToMetadata((DirectoryLink)link);
         }
-        private static FileMetadata ToMetadata(FileLink link) => (link.Info as FileInfo)?.Metadata;
-        private static FolderMetadata ToMetadata(DirectoryLink link) => (link.Info as DirectoryInfo)?.Metadata;
+        private static FileMetadata? ToMetadata(FileLink link) => (link.Info as FileInfo)?.Metadata;
+        private static FolderMetadata? ToMetadata(DirectoryLink link) => (link.Info as DirectoryInfo)?.Metadata;
 
         #endregion
 
