@@ -32,7 +32,6 @@
 
   <PropertyGroup>
     <RootNamespace>TagBites.IO.Dropbox</RootNamespace>
-    <LangVersion>8</LangVersion>
   </PropertyGroup>
 
   <!-- References -->
