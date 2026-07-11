@@ -269,7 +269,8 @@ internal class DropboxFileSystemOperations : IFileSystemAsyncWriteOperations, IF
         {
             Metadata = metadata ?? throw new ArgumentNullException(nameof(metadata));
 
-            Hash = new FileHash(FileHashAlgorithm.Md5, metadata.ContentHash); // TODO check
+            // Dropbox's content hash is a custom, chunked SHA-256-based algorithm - not comparable to any FileHashAlgorithm value.
+            Hash = FileHash.Empty;
         }
     }
     private class DirectoryInfo : IFileSystemStructureLinkInfo
