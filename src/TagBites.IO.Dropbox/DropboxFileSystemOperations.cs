@@ -88,6 +88,10 @@ internal class DropboxFileSystemOperations : IFileSystemAsyncWriteOperations, IF
         Guard.ArgumentNotNull(source, nameof(source));
         Guard.ArgumentNotNull(destination, nameof(destination));
 
+        // Dropbox's move has no overwrite option, so the destination is deleted first when requested.
+        if (overwrite)
+            await TryDeleteAsync(destination.FullName).ConfigureAwait(false);
+
         var arguments = new RelocationArg(source.FullName, destination.FullName);
         var result = await _dropboxClient.Files.MoveV2Async(arguments).ConfigureAwait(false);
 
@@ -130,6 +134,17 @@ internal class DropboxFileSystemOperations : IFileSystemAsyncWriteOperations, IF
         var result = await _dropboxClient.Files.MoveV2Async(arguments).ConfigureAwait(false);
 
         return GetDirectoryInfo(result.Metadata.AsFolder);
+    }
+    private async Task TryDeleteAsync(string path)
+    {
+        try
+        {
+            await _dropboxClient.Files.DeleteV2Async(new DeleteArg(path)).ConfigureAwait(false);
+        }
+        catch (ApiException<DeleteError> e) when (e.ErrorResponse.IsPathLookup && e.ErrorResponse.AsPathLookup.Value.IsNotFound)
+        {
+            // Nothing to overwrite.
+        }
     }
     public async Task DeleteDirectoryAsync(DirectoryLink directory, bool recursive)
     {
