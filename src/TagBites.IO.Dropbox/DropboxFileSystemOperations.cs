@@ -174,19 +174,27 @@ internal class DropboxFileSystemOperations : IFileSystemAsyncWriteOperations, IF
         //}
         //else
         {
-            // TODO continue list
             options.RecursiveHandled = true;
             var result1 = await _dropboxClient.Files.ListFolderAsync(new ListFolderArg(directory.FullName, recursive: options.Recursive)).ConfigureAwait(false);
-            foreach (var metadata in result1.Entries)
+            while (true)
             {
-                // Ignore yourself
-                if (metadata.PathDisplay == directory.FullName)
-                    continue;
+                foreach (var metadata in result1.Entries)
+                {
+                    // Ignore yourself
+                    if (metadata.PathDisplay == directory.FullName)
+                        continue;
 
-                if (options.SearchForFiles && metadata.IsFile)
-                    links.Add(GetFileInfo(metadata.AsFile));
-                else if (options.SearchForDirectories && metadata.IsFolder)
-                    links.Add(GetDirectoryInfo(metadata.AsFolder));
+                    if (options.SearchForFiles && metadata.IsFile)
+                        links.Add(GetFileInfo(metadata.AsFile));
+                    else if (options.SearchForDirectories && metadata.IsFolder)
+                        links.Add(GetDirectoryInfo(metadata.AsFolder));
+                }
+
+                // Dropbox paginates listings; fetch subsequent pages until none remain.
+                if (!result1.HasMore)
+                    break;
+
+                result1 = await _dropboxClient.Files.ListFolderContinueAsync(result1.Cursor).ConfigureAwait(false);
             }
         }
 
