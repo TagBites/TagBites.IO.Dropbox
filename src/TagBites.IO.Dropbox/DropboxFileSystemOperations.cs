@@ -26,12 +26,10 @@ namespace TagBites.IO.Dropbox
 
         public DropboxFileSystemOperations(string oauth2Token)
         {
-            DropboxCertHelper.InitializeCertPinning();
             _dropboxClient = new DropboxClient(oauth2Token);
         }
         public DropboxFileSystemOperations(string oauth2RefreshToken, string appKey, string appSecret)
         {
-            DropboxCertHelper.InitializeCertPinning();
             _dropboxClient = new DropboxClient(oauth2RefreshToken, appKey, appSecret);
         }
 
