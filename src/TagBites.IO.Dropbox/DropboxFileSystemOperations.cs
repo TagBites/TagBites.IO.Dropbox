@@ -30,7 +30,6 @@ internal class DropboxFileSystemOperations : IFileSystemAsyncWriteOperations, IF
     }
 
 
-
     public async Task<IFileSystemStructureLinkInfo?> GetLinkInfoAsync(string fullName)
     {
         Guard.ArgumentNotNullOrEmpty(fullName, nameof(fullName));
