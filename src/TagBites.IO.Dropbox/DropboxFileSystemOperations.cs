@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Threading.Tasks;
 using Dropbox.Api;
 using Dropbox.Api.Files;
 using TagBites.IO.Operations;
