@@ -153,49 +153,27 @@ internal class DropboxFileSystemOperations : IFileSystemAsyncWriteOperations, IF
 
         var links = new List<IFileSystemStructureLinkInfo>();
 
-        //if (options.HasSearchPattern)
-        //{
-        //    options.SearchPatternHandled = true;
-        //    var searchOptions = new SearchOptions(
-        //        path: directory.FullName,
-        //        maxResults: 100UL,
-        //        fileStatus: null,
-        //        filenameOnly: options.SearchForFiles && !options.SearchForDirectories);
-        //    var arguments = new SearchV2Arg(options.SearchPattern, searchOptions);
-        //    var result = await _dropboxClient.Files.SearchV2Async(arguments); // TODO
-
-        //    foreach (var match in result.Matches)
-        //    {
-        //        var metadata = match.Metadata.AsMetadata?.Value;
-        //        if (metadata == null)
-        //            continue;
-        //        links.Add(GetInfo(metadata));
-        //    }
-        //}
-        //else
+        options.RecursiveHandled = true;
+        var result1 = await _dropboxClient.Files.ListFolderAsync(new ListFolderArg(directory.FullName, recursive: options.Recursive)).ConfigureAwait(false);
+        while (true)
         {
-            options.RecursiveHandled = true;
-            var result1 = await _dropboxClient.Files.ListFolderAsync(new ListFolderArg(directory.FullName, recursive: options.Recursive)).ConfigureAwait(false);
-            while (true)
+            foreach (var metadata in result1.Entries)
             {
-                foreach (var metadata in result1.Entries)
-                {
-                    // Ignore yourself
-                    if (metadata.PathDisplay == directory.FullName)
-                        continue;
+                // Ignore yourself
+                if (metadata.PathDisplay == directory.FullName)
+                    continue;
 
-                    if (options.SearchForFiles && metadata.IsFile)
-                        links.Add(GetFileInfo(metadata.AsFile));
-                    else if (options.SearchForDirectories && metadata.IsFolder)
-                        links.Add(GetDirectoryInfo(metadata.AsFolder));
-                }
-
-                // Dropbox paginates listings; fetch subsequent pages until none remain.
-                if (!result1.HasMore)
-                    break;
-
-                result1 = await _dropboxClient.Files.ListFolderContinueAsync(result1.Cursor).ConfigureAwait(false);
+                if (options.SearchForFiles && metadata.IsFile)
+                    links.Add(GetFileInfo(metadata.AsFile));
+                else if (options.SearchForDirectories && metadata.IsFolder)
+                    links.Add(GetDirectoryInfo(metadata.AsFolder));
             }
+
+            // Dropbox paginates listings; fetch subsequent pages until none remain.
+            if (!result1.HasMore)
+                break;
+
+            result1 = await _dropboxClient.Files.ListFolderContinueAsync(result1.Cursor).ConfigureAwait(false);
         }
 
         return links;
